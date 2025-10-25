@@ -1,5 +1,8 @@
-# Usar Node.js 18 Alpine para imagem menor
-FROM node:18-alpine
+# Usar Node.js 20 Alpine para compatibilidade com Nuxt 4
+FROM node:20-alpine
+
+# Instalar dependências do sistema necessárias para bindings nativos
+RUN apk add --no-cache python3 make g++
 
 # Definir diretório de trabalho
 WORKDIR /app
@@ -7,8 +10,8 @@ WORKDIR /app
 # Copiar package.json e package-lock.json (se existir)
 COPY package*.json ./
 
-# Instalar dependências
-RUN npm ci --only=production && npm cache clean --force
+# Instalar dependências (incluindo dev para o build)
+RUN npm ci && npm cache clean --force
 
 # Copiar código fonte
 COPY . .
