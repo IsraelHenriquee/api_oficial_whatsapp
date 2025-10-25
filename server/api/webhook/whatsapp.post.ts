@@ -8,8 +8,24 @@ import type {
 
 export default defineEventHandler(async (event) => {
   try {
+    // Log inicial com timestamp
+    const timestamp = new Date().toISOString()
+    console.log(`\n🚀 ===== WEBHOOK WHATSAPP RECEBIDO - ${timestamp} =====`)
+    
+    // Log dos headers
+    console.log('📋 HEADERS:')
+    const headers = getHeaders(event)
+    Object.entries(headers).forEach(([key, value]) => {
+      console.log(`  ${key}: ${value}`)
+    })
+    
+    // Log da URL e método
+    console.log(`📍 URL: ${getRequestURL(event)}`)
+    console.log(`🔧 METHOD: ${getMethod(event)}`)
+    
     // Verificar se é um POST
     if (getMethod(event) !== 'POST') {
+      console.log('❌ Método não permitido:', getMethod(event))
       throw createError({
         statusCode: 405,
         statusMessage: 'Method Not Allowed'
@@ -19,7 +35,14 @@ export default defineEventHandler(async (event) => {
     // Ler o payload do webhook
     const payload: WhatsAppWebhookPayload = await readBody(event)
     
-    console.log('📩 Webhook recebido:', JSON.stringify(payload, null, 2))
+    // Log completo do payload
+    console.log('� PAYLOAD COMPLETO:')
+    console.log(JSON.stringify(payload, null, 2))
+    
+    // Log resumido para facilitar análise
+    console.log('📊 RESUMO DO PAYLOAD:')
+    console.log(`  - Objeto: ${payload.object}`)
+    console.log(`  - Número de entries: ${payload.entry?.length || 0}`)
 
     // Processar cada entrada do webhook
     const normalizedMessages: NormalizedMessage[] = []
@@ -40,18 +63,8 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    console.log('✅ Mensagens processadas:', normalizedMessages.length)
-    
     // Aqui você pode salvar no banco de dados, enviar para outro serviço, etc.
     for (const msg of normalizedMessages) {
-      console.log('📱 Mensagem normalizada:', {
-        de: `${msg.senderName} (${msg.senderPhone})`,
-        para: msg.businessDisplayPhone,
-        tipo: msg.messageType,
-        conteudo: msg.content,
-        hora: msg.timestamp.toLocaleString('pt-BR')
-      })
-
       // 🤖 RESPOSTA AUTOMÁTICA TEMPORÁRIA PARA TESTE
       if (msg.messageType === 'text') {
         await sendAutoReply(msg)
