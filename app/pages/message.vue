@@ -34,7 +34,37 @@
                 'border-transparent text-muted-foreground hover:text-foreground': activeTab !== 'image'
               }"
             >
-              �️ Imagem
+              🖼️ Imagem
+            </button>
+            <button
+              @click="activeTab = 'document'"
+              class="py-4 px-2 border-b-2 font-medium text-sm transition-colors"
+              :class="{
+                'border-primary text-primary': activeTab === 'document',
+                'border-transparent text-muted-foreground hover:text-foreground': activeTab !== 'document'
+              }"
+            >
+              📄 Documento
+            </button>
+            <button
+              @click="activeTab = 'audio'"
+              class="py-4 px-2 border-b-2 font-medium text-sm transition-colors"
+              :class="{
+                'border-primary text-primary': activeTab === 'audio',
+                'border-transparent text-muted-foreground hover:text-foreground': activeTab !== 'audio'
+              }"
+            >
+              🎵 Áudio
+            </button>
+            <button
+              @click="activeTab = 'video'"
+              class="py-4 px-2 border-b-2 font-medium text-sm transition-colors"
+              :class="{
+                'border-primary text-primary': activeTab === 'video',
+                'border-transparent text-muted-foreground hover:text-foreground': activeTab !== 'video'
+              }"
+            >
+              🎬 Vídeo
             </button>
           </nav>
         </div>
@@ -50,6 +80,21 @@
           <div v-if="activeTab === 'image'">
             <MessageImage />
           </div>
+
+          <!-- Tab Documento -->
+          <div v-if="activeTab === 'document'">
+            <MessageDocument />
+          </div>
+
+          <!-- Tab Áudio -->
+          <div v-if="activeTab === 'audio'">
+            <MessageAudio />
+          </div>
+
+          <!-- Tab Vídeo -->
+          <div v-if="activeTab === 'video'">
+            <MessageVideo />
+          </div>
         </div>
       </div>
     </div>
@@ -64,5 +109,5 @@ useSeoMeta({
 })
 
 // Estado para controlar a aba ativa
-const activeTab = ref<'text' | 'image'>('text')
+const activeTab = ref<'text' | 'image' | 'document' | 'audio' | 'video'>('text')
 </script>
