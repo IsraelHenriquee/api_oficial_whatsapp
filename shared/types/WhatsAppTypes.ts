@@ -37,7 +37,7 @@ export interface WhatsAppMessage {
   from: string;
   id: string;
   timestamp: string;
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contacts';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contacts' | 'sticker';
   text?: {
     body: string;
   };
@@ -45,13 +45,38 @@ export interface WhatsAppMessage {
     id: string;
     mime_type: string;
     sha256: string;
+    caption?: string;
   };
   audio?: {
     id: string;
     mime_type: string;
     sha256: string;
   };
-  // Adicionar outros tipos conforme necessário
+  video?: {
+    id: string;
+    mime_type: string;
+    sha256: string;
+    caption?: string;
+  };
+  document?: {
+    id: string;
+    mime_type: string;
+    sha256: string;
+    filename?: string;
+    caption?: string;
+  };
+  sticker?: {
+    id: string;
+    mime_type: string;
+    sha256: string;
+    animated: boolean;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+    address?: string;
+  };
 }
 
 // Tipo normalizado para saída
@@ -63,10 +88,20 @@ export interface NormalizedMessage {
   // Dados do receptor (seu negócio)
   businessDisplayPhone: string;
   businessPhoneId: string;
+  businessAccountId: string; // ID da conta do WhatsApp Business
   
   // Dados da mensagem
   messageType: WhatsAppMessage['type'];
   messageId: string;
   timestamp: Date;
-  content: string; // Por enquanto apenas texto
+  content: string;
+  
+  // Dados de mídia (opcional)
+  media?: {
+    id: string;
+    mimeType: string;
+    url?: string; // URL do arquivo baixado
+    filename?: string;
+    caption?: string;
+  };
 }

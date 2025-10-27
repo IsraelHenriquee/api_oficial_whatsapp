@@ -5,6 +5,7 @@ import type {
   WhatsAppContact,
   NormalizedMessage 
 } from '../../../shared/types/WhatsAppTypes'
+import { uploadToR2 } from '../../utils/uploadToR2'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -54,7 +55,7 @@ export default defineEventHandler(async (event) => {
           for (const message of change.value.messages) {
             const contact = change.value.contacts?.find((c: WhatsAppContact) => c.wa_id === message.from)
             
-            const normalizedMessage = normalizeMessage(message, change.value, contact)
+            const normalizedMessage = await normalizeMessage(message, change.value, contact, entry.id)
             if (normalizedMessage) {
               normalizedMessages.push(normalizedMessage)
             }
@@ -64,12 +65,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Aqui você pode salvar no banco de dados, enviar para outro serviço, etc.
-    for (const msg of normalizedMessages) {
-      // 🤖 RESPOSTA AUTOMÁTICA TEMPORÁRIA PARA TESTE
-      if (msg.messageType === 'text') {
-        await sendAutoReply(msg)
-      }
-    }
+    // Removendo envio de resposta automática
 
     // Responder com sucesso (WhatsApp espera status 200)
     return {
@@ -89,39 +85,171 @@ export default defineEventHandler(async (event) => {
 })
 
 // Função para normalizar a mensagem
-function normalizeMessage(
+async function normalizeMessage(
   message: WhatsAppMessage, 
   value: WhatsAppValue, 
-  contact?: WhatsAppContact
-): NormalizedMessage | null {
+  contact?: WhatsAppContact,
+  businessAccountId?: string
+): Promise<NormalizedMessage | null> {
   try {
     // Extrair conteúdo baseado no tipo
     let content = ''
+    let media: NormalizedMessage['media'] = undefined
     
     switch (message.type) {
       case 'text':
         content = message.text?.body || ''
         break
+        
       case 'image':
-        content = `[Imagem: ${message.image?.mime_type || 'image'}]`
+        if (message.image) {
+          content = message.image.caption || '[Imagem]'
+          
+          // Baixar mídia do WhatsApp e fazer upload no R2
+          const imageUrl = await downloadAndUploadToR2(
+            message.image.id,
+            'image',
+            value.metadata.phone_number_id,
+            new Date(parseInt(message.timestamp) * 1000),
+            message.image.mime_type
+          )
+          
+          media = {
+            id: message.image.id,
+            mimeType: message.image.mime_type,
+            url: imageUrl || undefined,
+            caption: message.image.caption
+          }
+          
+          console.log('🖼️ Imagem processada:', {
+            id: message.image.id,
+            mimeType: message.image.mime_type,
+            url: imageUrl
+          })
+        }
         break
+        
       case 'audio':
-        content = `[Áudio: ${message.audio?.mime_type || 'audio'}]`
+        if (message.audio) {
+          content = '[Áudio]'
+          
+          const audioUrl = await downloadAndUploadToR2(
+            message.audio.id,
+            'audio',
+            value.metadata.phone_number_id,
+            new Date(parseInt(message.timestamp) * 1000),
+            message.audio.mime_type
+          )
+          
+          media = {
+            id: message.audio.id,
+            mimeType: message.audio.mime_type,
+            url: audioUrl || undefined
+          }
+          
+          console.log('🎵 Áudio processado:', {
+            id: message.audio.id,
+            mimeType: message.audio.mime_type,
+            url: audioUrl
+          })
+        }
         break
+        
       case 'video':
-        content = '[Vídeo]'
+        if (message.video) {
+          content = message.video.caption || '[Vídeo]'
+          
+          const videoUrl = await downloadAndUploadToR2(
+            message.video.id,
+            'video',
+            value.metadata.phone_number_id,
+            new Date(parseInt(message.timestamp) * 1000),
+            message.video.mime_type
+          )
+          
+          media = {
+            id: message.video.id,
+            mimeType: message.video.mime_type,
+            url: videoUrl || undefined,
+            caption: message.video.caption
+          }
+          
+          console.log('🎬 Vídeo processado:', {
+            id: message.video.id,
+            mimeType: message.video.mime_type,
+            url: videoUrl
+          })
+        }
         break
+        
       case 'document':
-        content = '[Documento]'
+        if (message.document) {
+          content = message.document.caption || `[Documento: ${message.document.filename || 'arquivo'}]`
+          
+          const documentUrl = await downloadAndUploadToR2(
+            message.document.id,
+            'document',
+            value.metadata.phone_number_id,
+            new Date(parseInt(message.timestamp) * 1000),
+            message.document.mime_type
+          )
+          
+          media = {
+            id: message.document.id,
+            mimeType: message.document.mime_type,
+            url: documentUrl || undefined,
+            filename: message.document.filename,
+            caption: message.document.caption
+          }
+          
+          console.log('📄 Documento processado:', {
+            id: message.document.id,
+            mimeType: message.document.mime_type,
+            filename: message.document.filename,
+            url: documentUrl
+          })
+        }
         break
+        
+      case 'sticker':
+        if (message.sticker) {
+          content = message.sticker.animated ? '[Sticker Animado]' : '[Sticker]'
+          
+          const stickerUrl = await downloadAndUploadToR2(
+            message.sticker.id,
+            'sticker',
+            value.metadata.phone_number_id,
+            new Date(parseInt(message.timestamp) * 1000),
+            message.sticker.mime_type
+          )
+          
+          media = {
+            id: message.sticker.id,
+            mimeType: message.sticker.mime_type,
+            url: stickerUrl || undefined
+          }
+          
+          console.log('🎨 Sticker processado:', {
+            id: message.sticker.id,
+            mimeType: message.sticker.mime_type,
+            animated: message.sticker.animated,
+            url: stickerUrl
+          })
+        }
+        break
+        
       case 'location':
-        content = '[Localização]'
+        if (message.location) {
+          content = `[Localização: ${message.location.name || 'Local'}]`
+          console.log('📍 Localização:', message.location)
+        }
         break
+        
       default:
         content = `[${message.type}]`
     }
 
-    return {
+    const normalizedMessage: NormalizedMessage = {
       // Dados do remetente
       senderName: contact?.profile?.name || 'Usuário Desconhecido',
       senderPhone: message.from,
@@ -129,20 +257,58 @@ function normalizeMessage(
       // Dados do receptor (seu negócio)
       businessDisplayPhone: value.metadata.display_phone_number,
       businessPhoneId: value.metadata.phone_number_id,
+      businessAccountId: businessAccountId || '',
       
       // Dados da mensagem
       messageType: message.type,
       messageId: message.id,
-      timestamp: new Date(parseInt(message.timestamp) * 1000), // Converter timestamp Unix
+      timestamp: new Date(parseInt(message.timestamp) * 1000),
       content
     }
+
+    // Adicionar mídia se existir
+    if (media) {
+      normalizedMessage.media = media
+    }
+
+    return normalizedMessage
+    
   } catch (error) {
     console.error('❌ Erro ao normalizar mensagem:', error)
     return null
   }
 }
 
+// Função helper para baixar mídia do WhatsApp e fazer upload no R2
+async function downloadAndUploadToR2(
+  mediaId: string,
+  messageType: string,
+  senderId: string,
+  timestamp: Date,
+  mimeType: string
+): Promise<string | null> {
+  try {
+    // 1. Baixar a mídia usando o endpoint que já existe
+    const mediaBuffer = await $fetch<Uint8Array>(`/api/media/download/${mediaId}`, {
+      responseType: 'arrayBuffer'
+    })
 
+    // 2. Fazer upload para o R2
+    const r2Url = await uploadToR2(
+      Buffer.from(mediaBuffer),
+      messageType,
+      senderId,
+      timestamp,
+      mimeType
+    )
+
+    return r2Url
+
+  } catch (error: any) {
+    console.error('❌ Erro ao baixar e fazer upload da mídia:', error)
+    return null
+  }
+}
 
 // 🤖 Função temporária para resposta automática
 async function sendAutoReply(message: NormalizedMessage) {

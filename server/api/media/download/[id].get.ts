@@ -78,21 +78,53 @@ export default defineEventHandler(async (event) => {
 
 // Função auxiliar para obter extensão do arquivo baseada no MIME type
 function getFileExtension(mimeType: string): string {
+  // Remover parâmetros extras do MIME type (ex: "audio/ogg; codecs=opus" -> "audio/ogg")
+  const cleanMimeType = mimeType.split(';')[0].trim()
+  
   const extensions: { [key: string]: string } = {
+    // Imagens
     'image/jpeg': 'jpg',
     'image/png': 'png',
     'image/gif': 'gif',
     'image/webp': 'webp',
+    'image/bmp': 'bmp',
+    'image/svg+xml': 'svg',
+    
+    // Vídeos
     'video/mp4': 'mp4',
     'video/quicktime': 'mov',
+    'video/mpeg': 'mpeg',
+    'video/webm': 'webm',
+    'video/3gpp': '3gp',
+    
+    // Áudios
     'audio/mpeg': 'mp3',
-    'audio/wav': 'wav',
+    'audio/mp3': 'mp3',
     'audio/ogg': 'ogg',
+    'audio/opus': 'opus',
+    'audio/wav': 'wav',
+    'audio/aac': 'aac',
+    'audio/x-m4a': 'm4a',
+    'audio/mp4': 'm4a',
+    'audio/amr': 'amr',
+    'audio/webm': 'webm',
+    
+    // Documentos
     'application/pdf': 'pdf',
     'application/msword': 'doc',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-    'text/plain': 'txt'
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.ms-excel.sheet.macroenabled.12': 'xlsm',
+    'application/vnd.ms-powerpoint': 'ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'text/plain': 'txt',
+    'text/rtf': 'rtf',
+    'application/rtf': 'rtf',
+    'text/csv': 'csv',
+    'application/zip': 'zip',
+    'application/x-rar-compressed': 'rar'
   }
   
-  return extensions[mimeType] || 'bin'
+  return extensions[cleanMimeType] || 'bin'
 }
