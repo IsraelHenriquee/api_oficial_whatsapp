@@ -19,6 +19,20 @@ export async function uploadToR2(
   try {
     const config = useRuntimeConfig()
 
+    // Log das variáveis de ambiente carregadas
+    console.log('🔍 VERIFICANDO CONFIGURAÇÕES DO R2:')
+    console.log('  - r2AccessKeyId:', config.r2AccessKeyId ? `${config.r2AccessKeyId.substring(0, 8)}...` : '❌ VAZIO')
+    console.log('  - r2SecretAccessKey:', config.r2SecretAccessKey ? `${config.r2SecretAccessKey.substring(0, 8)}...` : '❌ VAZIO')
+    console.log('  - r2AccountId:', config.r2AccountId ? `${config.r2AccountId.substring(0, 8)}...` : '❌ VAZIO')
+    console.log('  - r2Bucket:', config.r2Bucket || '❌ VAZIO')
+
+    // Log das variáveis de ambiente diretas (para debug)
+    console.log('🔍 VARIÁVEIS DE AMBIENTE DIRETAS:')
+    console.log('  - process.env.R2ACCESSKEYID:', process.env.R2ACCESSKEYID ? `${process.env.R2ACCESSKEYID.substring(0, 8)}...` : '❌ VAZIO')
+    console.log('  - process.env.R2SECRETACCESSKEY:', process.env.R2SECRETACCESSKEY ? `${process.env.R2SECRETACCESSKEY.substring(0, 8)}...` : '❌ VAZIO')
+    console.log('  - process.env.R2ACCOUNTID:', process.env.R2ACCOUNTID ? `${process.env.R2ACCOUNTID.substring(0, 8)}...` : '❌ VAZIO')
+    console.log('  - process.env.R2BUCKET:', process.env.R2BUCKET || '❌ VAZIO')
+
     // Validar configurações do R2
     if (!config.r2AccessKeyId || !config.r2SecretAccessKey || !config.r2AccountId || !config.r2Bucket) {
       console.error('❌ Configurações do R2 não encontradas')
