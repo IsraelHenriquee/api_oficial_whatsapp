@@ -8,13 +8,15 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     // Configurações privadas (server-side only)
-    whatsappAccessToken: process.env.WHATSAPP_ACCESS_TOKEN || '',
-    whatsappVerifyToken: process.env.WHATSAPP_VERIFY_TOKEN || 'meu_token_secreto_12345',
+    // O Nuxt automaticamente mapeia NUXT_WHATSAPP_ACCESS_TOKEN -> whatsappAccessToken
+    whatsappAccessToken: '',
+    whatsappVerifyToken: '',
     
     // Cloudflare R2
-    r2AccessKeyId: process.env.R2ACCESSKEYID || '',
-    r2SecretAccessKey: process.env.R2SECRETACCESSKEY || '',
-    r2AccountId: process.env.R2ACCOUNTID || '',
-    r2Bucket: process.env.R2BUCKET || ''
+    // O Nuxt automaticamente mapeia NUXT_R2_ACCESS_KEY_ID -> r2AccessKeyId
+    r2AccessKeyId: '',
+    r2SecretAccessKey: '',
+    r2AccountId: '',
+    r2Bucket: ''
   }
 })

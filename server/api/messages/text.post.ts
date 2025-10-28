@@ -25,8 +25,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Pegar o token diretamente do ambiente
-    const accessToken = process?.env?.WHATSAPP_ACCESS_TOKEN
+    // Pegar o token do runtime config
+    const config = useRuntimeConfig()
+    const accessToken = config.whatsappAccessToken
     if (!accessToken) {
       throw createError({
         statusCode: 500,

@@ -1,5 +1,3 @@
-import type { MediaUploadResponse } from '../../../shared/types/WhatsAppMediaTypes'
-
 export default defineEventHandler(async (event) => {
   try {
     // Verificar se é um POST
@@ -39,7 +37,8 @@ export default defineEventHandler(async (event) => {
     }
 
     const phoneNumberId = phoneNumberIdField.data.toString()
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN
+    const config = useRuntimeConfig()
+    const accessToken = config.whatsappAccessToken
 
     if (!accessToken) {
       throw createError({
@@ -82,7 +81,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const result: MediaUploadResponse = await response.json()
+    const result = await response.json()
     
     console.log('✅ Upload realizado com sucesso! Media ID:', result.id)
 

@@ -18,7 +18,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN
+    const config = useRuntimeConfig()
+    const accessToken = config.whatsappAccessToken
 
     if (!accessToken) {
       throw createError({
