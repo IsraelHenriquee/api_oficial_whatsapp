@@ -65,7 +65,15 @@ export default defineEventHandler(async (event) => {
     }
 
     // Aqui você pode salvar no banco de dados, enviar para outro serviço, etc.
-    // Removendo envio de resposta automática
+    
+    // 🤖 RESPOSTA AUTOMÁTICA TEMPORÁRIA - APENAS PARA DEMONSTRAÇÃO PARA A META
+    // ⚠️  REMOVER EM PRODUÇÃO - Este código é apenas para testes e aprovação da Meta
+    for (const normalizedMessage of normalizedMessages) {
+      if (normalizedMessage.messageType === 'text') {
+        await sendAutoReply(normalizedMessage)
+      }
+    }
+    // 🤖 FIM DA RESPOSTA AUTOMÁTICA TEMPORÁRIA
 
     // Responder com sucesso (WhatsApp espera status 200)
     return {
@@ -310,13 +318,14 @@ async function downloadAndUploadToR2(
   }
 }
 
-// 🤖 Função temporária para resposta automática
+// 🤖 FUNÇÃO TEMPORÁRIA PARA RESPOSTA AUTOMÁTICA - APENAS PARA DEMONSTRAÇÃO PARA A META
+// ⚠️  REMOVER EM PRODUÇÃO - Este código é apenas para testes e aprovação da Meta
 async function sendAutoReply(message: NormalizedMessage) {
   try {
     console.log('🤖 Enviando resposta automática para:', message.senderPhone)
     
-    // Montar resposta com o texto recebido
-    const replyText = `Resposta: ${message.content}`
+    // Montar resposta no formato solicitado
+    const replyText = `Mensagem recebida: ${message.content}`
     
     console.log('📋 Dados sendo enviados:')
     console.log('  - Para:', message.senderPhone)
